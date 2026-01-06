@@ -36,32 +36,22 @@ pipeline {
 
         stage('Start MongoDB') {
             steps {
-                bat '''
-                docker rm -f %MONGO_NAME% || exit 0 &&
-                docker run -d --name %MONGO_NAME% --network %NETWORK_NAME% ^
-                -v mongo_data:/data/db -p 27017:27017 mongo
-                '''
+                bat 'docker rm -f %MONGO_NAME% || exit 0'
+                bat 'docker run -d --name %MONGO_NAME% --network %NETWORK_NAME% -v mongo_data:/data/db -p 27017:27017 mongo'
             }
         }
 
         stage('Start Flight Web Scraper') {
             steps {
-                bat '''
-                docker rm -f %SCRAPER_NAME% || exit 0 &&
-                docker run -d --name %SCRAPER_NAME% --network %NETWORK_NAME% ^
-                -p 5000:5000 flight-scraper
-                '''
+                bat 'docker rm -f %SCRAPER_NAME% || exit 0'
+                bat 'docker run -d --name %SCRAPER_NAME% --network %NETWORK_NAME% -p 5000:5000 flight-scraper'
             }
         }
 
         stage('Start Auth Service') {
             steps {
-                bat '''
-                docker rm -f %AUTH_NAME% || exit 0 &&
-                docker run -d --name %AUTH_NAME% --network %NETWORK_NAME% ^
-                -e MONGO_URL=mongodb://%MONGO_NAME%:27017/auth_demo ^
-                -p 3000:3000 auth-service
-                '''
+                bat 'docker rm -f %AUTH_NAME% || exit 0'
+                bat 'docker run -d --name %AUTH_NAME% --network %NETWORK_NAME% -e MONGO_URL=mongodb://%MONGO_NAME%:27017/auth_demo -p 3000:3000 auth-service'
             }
         }
     }
@@ -69,8 +59,8 @@ pipeline {
     post {
         success {
             echo "✅ Pipeline completed successfully"
-            echo "🔐 Auth Service  : http://<HOST>:3000"
-            echo "✈️ Scraper Page : Redirects after login"
+            echo "🔐 Auth Service running on port 3000"
+            echo "✈️ Flight Scraper accessible after login"
         }
 
         failure {

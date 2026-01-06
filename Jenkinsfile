@@ -1,13 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        NETWORK_NAME = "auths-network"
-        MONGO_NAME   = "mongo_container"
-        AUTH_NAME    = "auth-service"
-        SCRAPER_NAME = "flight-scraper"
-    }
-
     stages {
 
         stage('Install Node Dependencies') {
@@ -30,73 +23,64 @@ pipeline {
 
         stage('Create Docker Network') {
             steps {
-                bat 'docker network create %NETWORK_NAME% || exit 0'
+                bat 'docker network create auths-network || exit 0'
             }
         }
 
         stage('Start MongoDB') {
             steps {
-                bat 'docker rm -f %MONGO_NAME% || exit 0'
-                bat 'docker run -d --name %MONGO_NAME% --network %NETWORK_NAME% -v mongo_data:/data/db -p 27017:27017 mongo'
+                bat 'docker rm -f mongo_container || exit 0'
+                bat 'docker run -d --name mongo_container --network auths-network -v mongo_data:/data/db -p 27017:27017 mongo'
             }
         }
 
         stage('Start Flight Web Scraper') {
             steps {
-                bat 'docker rm -f %SCRAPER_NAME% || exit 0'
-                bat 'docker run -d --name %SCRAPER_NAME% --network %NETWORK_NAME% -p 5000:5000 flight-scraper'
+                bat 'docker rm -f flight-scraper || exit 0'
+                bat 'docker run -d --name flight-scraper --network auths-network -p 5000:5000 flight-scraper'
             }
         }
 
         stage('Start Auth Service') {
             steps {
-                bat 'docker rm -f %AUTH_NAME% || exit 0'
-                bat 'docker run -d --name %AUTH_NAME% --network %NETWORK_NAME% -e MONGO_URL=mongodb://%MONGO_NAME%:27017/auth_demo -p 3000:3000 auth-service'
+                bat 'docker rm -f auth-service || exit 0'
+                bat 'docker run -d --name auth-service --network auths-network -e MONGO_URL=mongodb://mongo_container:27017/auth_demo -p 3000:3000 auth-service'
             }
         }
 
         stage('Terraform Init') {
-    steps {
-        withCredentials([
-            string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
-            string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
-        ]) {
-            bat 'cd terraform'
-            bat 'set AWS_DEFAULT_REGION=ap-south-1'
-            bat 'terraform init'
+            steps {
+                withCredentials([
+                    string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    bat 'cd terraform'
+                    bat 'set AWS_DEFAULT_REGION=ap-south-1'
+                    bat 'terraform init'
+                }
+            }
         }
-    }
-}
 
-
-
-stage('Terraform Apply') {
-    steps {
-        withCredentials([
-            string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
-            string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
-        ]) {
-            bat 'cd terraform'
-            bat 'set AWS_DEFAULT_REGION=ap-south-1'
-            bat 'terraform apply -auto-approve -var="key_name=auth-flight-key"'
+        stage('Terraform Apply') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    bat 'cd terraform'
+                    bat 'set AWS_DEFAULT_REGION=ap-south-1'
+                    bat 'terraform apply -auto-approve -var="key_name=auth-flight-key"'
+                }
+            }
         }
-    }
-}
-
-}
-
-
     }
 
     post {
         success {
-            echo "✅ Pipeline completed successfully"
-            echo "🔐 Auth Service running on port 3000"
-            echo "✈️ Flight Scraper accessible after login"
+            echo '✅ Pipeline completed successfully'
         }
-
         failure {
-            echo "❌ Pipeline failed. Check logs for details."
+            echo '❌ Pipeline failed'
         }
     }
 }

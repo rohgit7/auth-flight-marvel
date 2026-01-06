@@ -56,12 +56,14 @@ pipeline {
             accessKeyVariable: 'AWS_ACCESS_KEY_ID',
             secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
         ]]) {
-            bat 'cd terraform'
-            bat 'set AWS_DEFAULT_REGION=ap-south-1'
-            bat 'terraform init'
+            dir('terraform') {
+                bat 'set AWS_DEFAULT_REGION=ap-south-1'
+                bat 'terraform init'
+            }
         }
     }
 }
+
 
 
         stage('Terraform Apply') {
@@ -72,12 +74,14 @@ pipeline {
             accessKeyVariable: 'AWS_ACCESS_KEY_ID',
             secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
         ]]) {
-            bat 'cd terraform'
-            bat 'set AWS_DEFAULT_REGION=ap-south-1'
-            bat 'terraform apply -auto-approve -var="key_name=auth-flight-key"'
+            dir('terraform') {
+                bat 'set AWS_DEFAULT_REGION=ap-south-1'
+                bat 'terraform apply -auto-approve -var="key_name=auth-flight-key"'
+            }
         }
     }
 }
+
 
     }
 

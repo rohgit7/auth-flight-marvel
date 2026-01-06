@@ -51,8 +51,8 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
-                    string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                    string(credentialsId: 'aws-creds', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-creds', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     bat 'cd terraform'
                     bat 'set AWS_DEFAULT_REGION=ap-south-1'
@@ -64,8 +64,8 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
-                    string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
+                    string(credentialsId: 'aws-creds', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'aws-creds', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
                     bat 'cd terraform'
                     bat 'set AWS_DEFAULT_REGION=ap-south-1'

@@ -57,37 +57,32 @@ pipeline {
 
         stage('Terraform Init') {
     steps {
-        withCredentials([[
-            $class: 'AmazonWebServicesCredentialsBinding',
-            credentialsId: 'aws-creds',
-            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-        ]]) {
-            bat '''
-            cd terraform &&
-            set AWS_DEFAULT_REGION=ap-south-1 &&
-            terraform init
-            '''
+        withCredentials([
+            string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
+            string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
+        ]) {
+            bat 'cd terraform'
+            bat 'set AWS_DEFAULT_REGION=ap-south-1'
+            bat 'terraform init'
         }
     }
 }
 
 
+
 stage('Terraform Apply') {
     steps {
-        withCredentials([[
-            $class: 'AmazonWebServicesCredentialsBinding',
-            credentialsId: 'aws-creds',
-            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-        ]]) {
-            bat '''
-            cd terraform &&
-            set AWS_DEFAULT_REGION=ap-south-1 &&
-            terraform apply -auto-approve -var="key_name=auth-flight-key"
-            '''
+        withCredentials([
+            string(credentialsId: 'aws-access-key', variable: 'AWS_ACCESS_KEY_ID'),
+            string(credentialsId: 'aws-secret-key', variable: 'AWS_SECRET_ACCESS_KEY')
+        ]) {
+            bat 'cd terraform'
+            bat 'set AWS_DEFAULT_REGION=ap-south-1'
+            bat 'terraform apply -auto-approve -var="key_name=auth-flight-key"'
         }
     }
+}
+
 }
 
 

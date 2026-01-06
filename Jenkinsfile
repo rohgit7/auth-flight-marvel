@@ -54,6 +54,19 @@ pipeline {
                 bat 'docker run -d --name %AUTH_NAME% --network %NETWORK_NAME% -e MONGO_URL=mongodb://%MONGO_NAME%:27017/auth_demo -p 3000:3000 auth-service'
             }
         }
+
+        stage('Terraform Init') {
+    steps {
+        bat 'cd terraform && terraform init'
+    }
+}
+
+stage('Terraform Apply') {
+    steps {
+        bat 'cd terraform && terraform apply -auto-approve -var="key_name=auth-flight-key"'
+    }
+}
+
     }
 
     post {
